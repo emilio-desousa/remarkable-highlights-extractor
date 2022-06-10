@@ -1,18 +1,18 @@
 [tool.poetry]
-name = "remarkable-highlights"
+name = "remarks_extractor"
 version = "0.1.0"
 description = "Python project to extract highlights from your remarkable"
 authors = ["Emilio DE SOUSA <desousa.emilio.info@gmail.com>"]
-
 [tool.poetry.dependencies]
 python = "^3.8"
 pandas = "^1.4.2"
+
+[tool.poetry.dev-dependencies]
 mypy = "^0.961"
 pre-commit = "^2.19.0"
 pandas-stubs = "^1.2.0"
 isort = "^5.10.1"
-
-[tool.poetry.dev-dependencies]
+pylint = "^2.14.1"
 black = {version = "^22.3.0", allow-prereleases = true}
 ipykernel = "^6.12.1"
 

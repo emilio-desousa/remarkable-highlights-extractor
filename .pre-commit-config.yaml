@@ -3,12 +3,12 @@ repos:
     hooks:
       - id: isort
         name: isort
-        entry: isort --profile black remarks_extractor tests 
+        entry: poetry run isort --profile black remarks_extractor tests 
         language: python
         types: [python]
       - id: black
         name: black
-        entry: black remarks_extractor tests --check --experimental-string-processing
+        entry: poetry run  black remarks_extractor tests --check --experimental-string-processing
         language: python
         types: [python]
       - id: linter
