@@ -1,0 +1,27 @@
+repos:
+  - repo: local
+    hooks:
+      - id: isort
+        name: isort
+        entry: isort --profile black remarks_extractor tests 
+        language: python
+        types: [python]
+      - id: black
+        name: black
+        entry: black remarks_extractor tests --check --experimental-string-processing
+        language: python
+        types: [python]
+      - id: linter
+        name: Linter (pylint)
+        entry: poetry run pylint
+        language: system
+        types: [python]
+        stages: [commit]
+      - id: typing
+        name: Type checker (mypy)
+        entry: poetry run mypy
+        args: [--ignore-missing-imports, --no-implicit-optional, --disallow-untyped-defs,
+          --disallow-incomplete-defs]
+        language: system
+        types: [python]
+        stages: [commit]
