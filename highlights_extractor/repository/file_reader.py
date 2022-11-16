@@ -16,6 +16,13 @@ class RawFile:
     content: dict
 
 
+@dataclass
+class RawHighlightFile:
+
+    file_path: Path
+    content: list[dict]
+
+
 class FileReader(metaclass=ABCMeta):
     @abstractmethod
     def read_all_content_files(self, fields_to_keep: list[str]) -> list[RawFile]:
@@ -25,9 +32,9 @@ class FileReader(metaclass=ABCMeta):
     def read_all_metadata_files(self, fields_to_keep: list[str]) -> list[RawFile]:
         pass
 
-    # @abstractmethod
-    # def read_highlights(self) -> dict:
-    #     pass
+    @abstractmethod
+    def read_document_highlights(self, document_id: str) -> list[RawHighlightFile]:
+        pass
 
     # @abstractmethod
     # def read_metadata(self) -> dict:
@@ -65,6 +72,17 @@ class LocalFileReader(FileReader):
             )
         return all_content_files
 
+    def read_document_highlights(self, document_id: str) -> list[RawHighlightFile]:
+        files = []
+        file_path = ""
+        for file_data, file_path in self.read_files_from_glob_expression(
+            str(DATA_FOLDER / f"{document_id}.highlights/*.json")
+        ):
+            data = recursive_function_to_get_all_dicts(file_data["highlights"])
+            files.append(RawHighlightFile(file_path=Path(file_path), content=data))
+
+        return files
+
     def read_files_from_glob_expression(
         self, glob_expression: str
     ) -> Generator[Tuple[dict, str], None, None]:
@@ -77,5 +95,22 @@ class LocalFileReader(FileReader):
         with open(path, "rb") as json_file:
             return json.load(json_file)
 
+
+def recursive_function_to_get_all_dicts(highlights: list) -> list:
+    list_of_dict = []
+    for dict_or_list in highlights:
+        if isinstance(dict_or_list, dict):
+            list_of_dict.append(dict_or_list)
+        else:
+            list_of_dict = list_of_dict + recursive_function_to_get_all_dicts(
+                dict_or_list
+            )
+
+    return list_of_dict
+
+
+# %%
+local_fs = LocalFileReader()
+tmp = local_fs.read_document_highlights("1ef483b1-a177-488b-b942-c049adaed58c")
 
 # %%
