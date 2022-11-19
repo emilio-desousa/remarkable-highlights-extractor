@@ -51,3 +51,12 @@ class DocumentHighlights:
 
     def __repr__(self) -> str:
         return str(self.page_highlights)
+
+
+@dataclass
+class Document:
+    document_highlights: DocumentHighlights
+    document_metadata: DocumentMetadata
+
+    def __post_init__(self) -> None:
+        self.name = self.document_metadata.document_name
