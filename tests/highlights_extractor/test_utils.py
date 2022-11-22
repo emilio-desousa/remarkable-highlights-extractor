@@ -23,7 +23,9 @@ def test_extract_document_id_from_path_from_highlight_file() -> None:
     assert actual_document_id == expected_document_id
 
 
-def test_extract_document_id_from_path_should_raise_value_error_with_not_expected_file() -> None:
+def test_extract_document_id_from_path_should_raise_value_error_with_not_expected_file() -> (
+    None
+):
     path = Path(
         "/xochitl/1ef483b1-a177-488b-b942-c049adaed58c/0f65c700-8d22-48b2-a918-977f0f45826a.rm"
     )

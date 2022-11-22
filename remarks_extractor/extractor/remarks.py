@@ -9,7 +9,6 @@ from remarks_extractor.repository.file_reader import XochitlFilesReader
 def map_content_files_with_metadata_and_highlights(
     file_reader: XochitlFilesReader,
 ) -> Generator[Document, None, None]:
-
     documents_ids = file_reader.get_documents_ids()
 
     for document_id in documents_ids:
