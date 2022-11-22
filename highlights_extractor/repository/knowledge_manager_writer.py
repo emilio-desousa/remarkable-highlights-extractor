@@ -38,24 +38,22 @@ class ObsidianDocument(MarkdownWriter):
         obsidian_document_content = ""
         document_highlights = remarkable_document.document_highlights.page_highlights
         for page_highlights in document_highlights:
-            obsidian_document_content += self._add_header_3(
-                str(page_highlights.raw_file.file_path)
-            )
+            obsidian_document_content += self._add_header_3(str(1))
             obsidian_document_content += self._add_page_quotes(
                 page_highlights.highlights
             )
         return obsidian_document_content
 
     def _add_header_1(self, text: str) -> str:
-        title = f"\n# {text}\n"
+        title = f"\n# {text}"
         return title
 
     def _add_header_2(self, text: str) -> str:
-        title = f"\n## {text}\n"
+        title = f"\n## {text}"
         return title
 
     def _add_header_3(self, text: str) -> str:
-        title = f"\n### {text}\n"
+        title = f"\n### {text}"
         return title
 
     def _add_metadata(self, current_date: str) -> str:
