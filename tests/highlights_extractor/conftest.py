@@ -28,6 +28,14 @@ def make_remarkable_raw_highlights() -> Callable[[int], RawHighlightFile]:
     return _remarkable_raw_highlights
 
 
+def remarkable_raw_content() -> RawFile:
+    raw_highlight = RawFile(
+        Path("doc_id.content"),
+        {"pages": ["page_id_1", "page_id_2"], "redirectionPageMap": [1, 2]},
+    )
+    return raw_highlight
+
+
 @pytest.fixture
 def remarkable_document_with_2_page_highlights(
     make_remarkable_raw_highlights: Callable[[int], RawHighlightFile],

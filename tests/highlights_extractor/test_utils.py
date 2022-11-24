@@ -2,7 +2,10 @@ from pathlib import Path
 
 import pytest
 
-from highlights_extractor.utils import extract_document_id_from_path
+from highlights_extractor.utils import (
+    extract_document_id_from_path,
+    extract_page_id_from_path,
+)
 
 
 def test_extract_document_id_from_path() -> None:
@@ -24,6 +27,26 @@ def test_extract_document_id_from_path_from_highlight_file() -> None:
 
 
 def test_extract_document_id_from_path_should_raise_value_error_with_not_expected_file() -> (
+    None
+):
+    path = Path(
+        "/xochitl/1ef483b1-a177-488b-b942-c049adaed58c/0f65c700-8d22-48b2-a918-977f0f45826a.rm"
+    )
+    with pytest.raises(ValueError):
+        extract_document_id_from_path(path)
+
+
+def test_extract_page_id_from_path() -> None:
+    path = Path(
+        "/xochitl/1ef483b1-a177-488b-b942-c049adaed58c.highlights/0f65c700-8d22-48b2-a918-977f0f45826a.json"
+    )
+    expected_page_id = "0f65c700-8d22-48b2-a918-977f0f45826a"
+    actual_page_id = extract_page_id_from_path(path)
+
+    assert expected_page_id == actual_page_id
+
+
+def test_extract_page_id_from_path_should_raise_value_error_with_not_expected_file() -> (
     None
 ):
     path = Path(

@@ -38,7 +38,9 @@ class ObsidianDocument(MarkdownWriter):
         obsidian_document_content = ""
         document_highlights = remarkable_document.document_highlights.page_highlights
         for page_highlights in document_highlights:
-            obsidian_document_content += self._add_header_3(str(1))
+            obsidian_document_content += self._add_header_3(
+                str(page_highlights.page_number)
+            )
             obsidian_document_content += self._add_page_quotes(
                 page_highlights.highlights
             )
