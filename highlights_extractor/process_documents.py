@@ -1,17 +1,11 @@
 import io
-from copy import copy
 from pathlib import Path
 
 import fitz
 from PIL import Image
 
-from highlights_extractor.models import (
-    DocumentContent,
-    DocumentHighlights,
-    DocumentMetadata,
-    PageHighlights,
-)
-from highlights_extractor.repository.file_reader import FileReader
+from highlights_extractor.models import DocumentContent, DocumentMetadata
+from highlights_extractor.repository.file_reader import FileReader, RawHighlightFile
 
 
 class PDFReader:
@@ -46,33 +40,7 @@ def get_document_id_from_metadata_documents(
     return documents_metadata[index]
 
 
-def get_highlights(file_reader: FileReader, document_id: str) -> DocumentHighlights:
-    highlights_files = file_reader.read_document_highlights(document_id)
-    all_highlights = []
-    for highlight_file in highlights_files:
-        page_highlights = PageHighlights(highlight_file)
-        all_highlights.append(page_highlights)
-    doc_highlights = DocumentHighlights(all_highlights, document_id=document_id)
-    return doc_highlights
-
-
-def enrich_highlights_pages(
-    document_content: DocumentContent,
-    document_highlights: DocumentHighlights,
-    pdf_reader: PDFReader | None,
-) -> DocumentHighlights:
-    current_document_highlights = copy(document_highlights)
-    for page_highlights in current_document_highlights.page_highlights:
-        page_number = get_page_number(document_content, page_highlights)
-        page_highlights.set_page_number(page_number)
-        if pdf_reader:
-            page_image = pdf_reader.get_page_image(page_number)
-            page_highlights.set_page_image(page_image)
-
-    return current_document_highlights
-
-
-def get_page_number(document_content: DocumentContent, page: PageHighlights) -> int:
+def get_page_number(document_content: DocumentContent, page: RawHighlightFile) -> int:
     page_remarkable_index = document_content.remarkable_page_ids.index(page.page_id)
     page_number = document_content.page_numbers[page_remarkable_index]
     return page_number

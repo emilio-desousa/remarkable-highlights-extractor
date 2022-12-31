@@ -16,8 +16,7 @@ from highlights_extractor.repository.file_reader import RawFile, RawHighlightFil
 @pytest.fixture
 def make_page_highlights() -> Callable[[int], PageHighlights]:
     def _remarkable_page_highlights(page_id: int) -> PageHighlights:
-        page = PageHighlights(make_raw_highlights(page_id))
-        page = page.set_page_number(page_id)
+        page = PageHighlights(make_raw_highlights(page_id), page_id)
         return page
 
     return _remarkable_page_highlights
@@ -56,7 +55,7 @@ def remarkable_document_with_2_page_highlights(
     raw_highlights_1 = make_remarkable_raw_highlights(1)
     raw_highlights_2 = make_remarkable_raw_highlights(2)
     document_highlights = DocumentHighlights(
-        [PageHighlights(raw_highlights_1), PageHighlights(raw_highlights_2)],
+        [PageHighlights(raw_highlights_1, 1), PageHighlights(raw_highlights_2, 2)],
         document_id="doc_1",
     )
     document_metadata = DocumentMetadata(

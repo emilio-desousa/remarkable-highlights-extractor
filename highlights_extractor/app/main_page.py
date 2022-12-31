@@ -34,6 +34,7 @@ with st.sidebar:
             value="/Users/emiliodesousa/ghq/github.com/emilio-desousa/obsidian-vault/07_FILES",
         )
     )
+    is_saving_images = st.checkbox("Load and export page images?")
 
 if document_metadata:
     st.header(document_metadata.document_name)
@@ -45,17 +46,14 @@ if document_metadata:
     )
     pdf_reader = PDFReader(DATA_FOLDER / f"{document_metadata.document_id}.pdf")
     for highlight_file in highlights_files:
-        page_highlights = PageHighlights(highlight_file)
-        page_number = get_page_number(document_content, page_highlights)
-        page_highlights.set_page_number(page_number)
-        if pdf_reader:
-            page_image = pdf_reader.get_page_image(page_number)
-            page_highlights.set_page_image(page_image)
+        page_number = get_page_number(document_content, highlight_file)
+        image = pdf_reader.get_page_image(page_number) if is_saving_images else None
+        page_highlights = PageHighlights(highlight_file, page_number, image)
         all_highlights.append(page_highlights)
     doc_highlights = DocumentHighlights(
         all_highlights, document_id=document_metadata.document_id
     )
-    for page_highlights in doc_highlights.page_highlights:
+    for page_highlights in doc_highlights.page_highlights_sorted:
         st.header(page_highlights.page_number)
         if page_highlights.image:
             st.image(page_highlights.image)
@@ -63,7 +61,9 @@ if document_metadata:
 
     final_document = Document(doc_highlights, document_metadata)
     obsidian_extractor = ObsidianDocument(
-        vault_path=destination_path, image_path=images_destination_path
+        vault_path=destination_path,
+        image_path=images_destination_path,
+        is_saving_images=is_saving_images,
     )
     if extracting_document:
         obsidian_extractor.extract_document(final_document)

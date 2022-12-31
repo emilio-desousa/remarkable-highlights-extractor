@@ -6,6 +6,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Generator, Optional, Tuple
 
+from highlights_extractor.utils import (
+    extract_document_id_from_path,
+    extract_page_id_from_path,
+)
 from remarks_extractor.config.constants import DATA_FOLDER
 
 
@@ -14,11 +18,18 @@ class RawFile:
     file_path: Path
     content: dict
 
+    def __post_init__(self) -> None:
+        self.document_id = extract_document_id_from_path(self.file_path)
+
 
 @dataclass
 class RawHighlightFile:
     file_path: Path
     content: list[dict]
+
+    def __post_init__(self) -> None:
+        self.page_id = extract_page_id_from_path(self.file_path)
+        self.document_id = extract_document_id_from_path(self.file_path)
 
 
 class FileReader(metaclass=ABCMeta):

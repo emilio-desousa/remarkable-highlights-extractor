@@ -9,7 +9,7 @@ from highlights_extractor.repository.knowledge_manager_writer import ObsidianDoc
 
 @pytest.fixture
 def my_obsidian_extractor() -> ObsidianDocument:
-    return ObsidianDocument(Path(__file__).parent)
+    return ObsidianDocument(Path(__file__).parent, Path())
 
 
 def test_add_metadata(my_obsidian_extractor: ObsidianDocument) -> None:
@@ -44,7 +44,7 @@ def test_format_document(
 ) -> None:
     expected_formatted_document = (
         "\n### 1\n```ad-quote\npage_1_highlight_1\npage_1_highlight_2\n```"
-        "\n### 1\n```ad-quote\npage_2_highlight_1\npage_2_highlight_2\n```"
+        "\n### 2\n```ad-quote\npage_2_highlight_1\npage_2_highlight_2\n```"
     )
 
     actual_document_formatted_content = my_obsidian_extractor.format_document(
