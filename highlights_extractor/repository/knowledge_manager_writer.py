@@ -31,13 +31,17 @@ class KnowLedgeManagerWriter(abc.ABC):
 
 
 class ObsidianDocument(MarkdownWriter):
-    def __init__(self, vault_path: Path) -> None:
+    def __init__(self, vault_path: Path, image_path: Path) -> None:
         self.vault_path = vault_path
+        self.image_path = image_path
 
     def format_document(self, remarkable_document: Document) -> str:
         obsidian_document_content = ""
         document_highlights = remarkable_document.document_highlights.page_highlights
         for page_highlights in document_highlights:
+            obsidian_document_content += self._add_image(
+                remarkable_document.name, page_highlights.page_number
+            )
             obsidian_document_content += self._add_header_3(
                 str(page_highlights.page_number)
             )
@@ -62,12 +66,24 @@ class ObsidianDocument(MarkdownWriter):
         metadata = f"\n> Timestamp: {current_date}\n> Status:\n> Tags:\n"
         return metadata
 
+    def _add_image(self, document_name: str, page_number: int) -> str:
+        image = f"![[{document_name}_{page_number}.jpeg]]"
+        return image
+
     def _add_page_quotes(self, page_quotes: list[str]) -> str:
         formatted_quote = "\n```ad-quote\n"
         for quote in page_quotes:
             formatted_quote += f"{quote}\n"
         formatted_quote = f"{formatted_quote}```"
         return formatted_quote
+
+    def extract_document(self, remarkable_document: Document) -> None:
+        formatted_document = self.format_document(remarkable_document)
+        self.export(remarkable_document.name, formatted_document)
+
+    # @staticmethod
+    # def save_pages_images(remarkable_document: Document) -> None:
+    #     pass
 
     def export(self, document_name: str, content: str) -> None:
         self.write_file(self.vault_path / document_name, content)

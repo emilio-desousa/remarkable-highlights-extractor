@@ -23,10 +23,6 @@ class RawHighlightFile:
 
 class FileReader(metaclass=ABCMeta):
     @abstractmethod
-    def read_all_content_files(self, fields_to_keep: list[str]) -> list[RawFile]:
-        pass
-
-    @abstractmethod
     def read_all_metadata_files(self, fields_to_keep: list[str]) -> list[RawFile]:
         pass
 
@@ -34,39 +30,39 @@ class FileReader(metaclass=ABCMeta):
     def read_document_highlights(self, document_id: str) -> list[RawHighlightFile]:
         pass
 
-    # @abstractmethod
-    # def read_metadata(self) -> dict:
-    #     pass
+    @abstractmethod
+    def read_all_content_files(self, fields_to_keep: list[str]) -> list[RawFile]:
+        pass
 
-    # @abstractmethod
-    # def read_pdf(self) -> dict:
-    #     pass
+    @abstractmethod
+    def read_document_content(
+        self, document_id: str, fields_to_keep: Optional[list[str]] = None
+    ) -> RawFile:
+        pass
 
 
 class LocalFileReader(FileReader):
     def __init__(self, data_folder: Path = DATA_FOLDER) -> None:
         self.data_folder = data_folder
 
-    def read_all_content_files(self, fields_to_keep: list[str]) -> list[RawFile]:
-        all_content_files = []
-        for file_data, file_path in self.read_files_from_glob_expression("*.content"):
-            all_content_files.append(
-                RawFile(
-                    file_path=Path(file_path),
-                    content={key: file_data[key] for key in fields_to_keep},
-                )
-            )
-        return all_content_files
-
     def read_all_metadata_files(self, fields_to_keep: list[str]) -> list[RawFile]:
-        all_content_files = []
-        for file_data, file_path in self.read_files_from_glob_expression("*.metadata"):
-            all_content_files.append(
-                RawFile(
-                    file_path=Path(file_path),
-                    content={key: file_data[key] for key in fields_to_keep},
-                )
+        return self._create_raw_file("*.metadata", fields_to_keep)
+
+    def read_all_content_files(self, fields_to_keep: list[str]) -> list[RawFile]:
+        return self._create_raw_file("*.content", fields_to_keep)
+
+    def _create_raw_file(
+        self, glob_expression: str, fields_to_keep: list[str]
+    ) -> list[RawFile]:
+        all_content_files = [
+            RawFile(
+                file_path=Path(file_path),
+                content={key: file_data[key] for key in fields_to_keep},
             )
+            for file_data, file_path in self.read_files_from_glob_expression(
+                glob_expression
+            )
+        ]
         return all_content_files
 
     def read_document_content(
@@ -115,10 +111,3 @@ def recursive_function_to_get_all_dicts(highlights: list) -> list:
             )
 
     return list_of_dict
-
-
-# %%
-local_fs = LocalFileReader()
-tmp = local_fs.read_document_highlights("1ef483b1-a177-488b-b942-c049adaed58c")
-
-# %%
