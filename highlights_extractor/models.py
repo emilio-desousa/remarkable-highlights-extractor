@@ -44,6 +44,7 @@ class PageHighlights:
     raw_file: RawHighlightFile
     page_number: int
     image: Optional[Image.Image] = None
+    chapter: Optional[str] = None
 
     def __post_init__(self) -> None:
         self.page_id = self.raw_file.page_id

@@ -21,7 +21,7 @@ documents_metadata = [
     DocumentMetadata(metadata_file) for metadata_file in metadata_files
 ]
 with st.sidebar:
-    document_metadata = st.selectbox("document", list(documents_metadata))
+    document_metadata = st.selectbox("document", list(documents_metadata), index=28)
     destination_path = Path(
         st.text_input(
             "Obsidian path",
@@ -44,17 +44,25 @@ if document_metadata:
     document_content = DocumentContent(
         local_fs.read_document_content(document_id=document_metadata.document_id)
     )
-    pdf_reader = PDFReader(DATA_FOLDER / f"{document_metadata.document_id}.pdf")
+    pdf_reader = PDFReader(
+        DATA_FOLDER / f"{document_metadata.document_id}.pdf",
+        document_name=document_metadata.document_name,
+    )
     for highlight_file in highlights_files:
         page_number = get_page_number(document_content, highlight_file)
         image = pdf_reader.get_page_image(page_number) if is_saving_images else None
-        page_highlights = PageHighlights(highlight_file, page_number, image)
+        page_highlights = PageHighlights(
+            highlight_file,
+            page_number,
+            image,
+            chapter=pdf_reader.get_chapter_title(page_number),
+        )
         all_highlights.append(page_highlights)
     doc_highlights = DocumentHighlights(
         all_highlights, document_id=document_metadata.document_id
     )
     for page_highlights in doc_highlights.page_highlights_sorted:
-        st.header(page_highlights.page_number)
+        st.header(page_highlights.chapter)
         if page_highlights.image:
             st.image(page_highlights.image)
         st.write(page_highlights.highlights)
