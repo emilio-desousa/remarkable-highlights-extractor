@@ -27,13 +27,13 @@ class PDFReader:
         self.document_name = document_name
 
     def _get_raw_table_of_contents(self) -> List[TableOfContentItem]:
-        table_of_content = self.reader.get_toc()  # type: ignore
-        if not table_of_content:
-            raise DocumentNotProcessableError(
-                f"Document: {self.document_name} does not have a table of contents"
-                "or it cannot be found."
-            )
-        return [TableOfContentItem(*item) for item in table_of_content]
+        if table_of_content := self.reader.get_toc():  # type: ignore
+            return [TableOfContentItem(*item) for item in table_of_content]
+
+        raise DocumentNotProcessableError(
+            f"Document: {self.document_name} does not have a table of contents"
+            "or it cannot be found."
+        )
 
     @staticmethod
     def _get_table_of_contents_df(
@@ -73,7 +73,7 @@ class PDFReader:
         chapter_title = chapter_corresponding_to_the_current_page["title"]
         if isinstance(chapter_title, str):
             return chapter_title
-        return list(chapter_corresponding_to_the_current_page["title"])[0]
+        return list(chapter_title)[0]
 
     def _get_fitz_reader(self, document_path: Path) -> fitz.Document:
         return fitz.Document(document_path)
