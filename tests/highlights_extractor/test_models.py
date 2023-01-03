@@ -13,9 +13,7 @@ def test_sorting_page_highlights_without_already_sorted_list(
     assert sorted_pages == [page_0_highlights, page_1_highlights]
 
 
-def test_sorting_page_highlights(
-    make_page_highlights: Callable[[int], PageHighlights]
-) -> None:
+def test_sorting_page_highlights(make_page_highlights: Callable[[int], PageHighlights]) -> None:
     page_0_highlights = make_page_highlights(0)
     page_1_highlights = make_page_highlights(1)
     pages = [page_0_highlights, page_1_highlights]

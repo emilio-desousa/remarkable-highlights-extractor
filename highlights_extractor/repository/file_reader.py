@@ -6,11 +6,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Generator, Optional, Tuple
 
+from highlights_extractor.constants import DATA_FOLDER
 from highlights_extractor.utils import (
     extract_document_id_from_path,
     extract_page_id_from_path,
 )
-from remarks_extractor.config.constants import DATA_FOLDER
 
 
 @dataclass
@@ -62,17 +62,13 @@ class LocalFileReader(FileReader):
     def read_all_content_files(self, fields_to_keep: list[str]) -> list[RawFile]:
         return self._create_raw_file("*.content", fields_to_keep)
 
-    def _create_raw_file(
-        self, glob_expression: str, fields_to_keep: list[str]
-    ) -> list[RawFile]:
+    def _create_raw_file(self, glob_expression: str, fields_to_keep: list[str]) -> list[RawFile]:
         all_content_files = [
             RawFile(
                 file_path=Path(file_path),
                 content={key: file_data[key] for key in fields_to_keep},
             )
-            for file_data, file_path in self.read_files_from_glob_expression(
-                glob_expression
-            )
+            for file_data, file_path in self.read_files_from_glob_expression(glob_expression)
         ]
         return all_content_files
 
@@ -117,8 +113,6 @@ def recursive_function_to_get_all_dicts(highlights: list) -> list:
         if isinstance(dict_or_list, dict):
             list_of_dict.append(dict_or_list)
         else:
-            list_of_dict = list_of_dict + recursive_function_to_get_all_dicts(
-                dict_or_list
-            )
+            list_of_dict = list_of_dict + recursive_function_to_get_all_dicts(dict_or_list)
 
     return list_of_dict

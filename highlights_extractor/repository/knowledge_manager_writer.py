@@ -12,9 +12,7 @@ class MarkdownWriter:
 
     def write_file(self, file_path: Path, data: str) -> None:
         document_path = (
-            str(file_path)
-            if self._is_correct_markdown_file(file_path)
-            else f"{file_path}.md"
+            str(file_path) if self._is_correct_markdown_file(file_path) else f"{file_path}.md"
         )
         with open(document_path, "w", encoding="utf-8") as file:
             file.write(data)
@@ -31,9 +29,7 @@ class KnowLedgeManagerWriter(abc.ABC):
 
 
 class ObsidianDocument(MarkdownWriter):
-    def __init__(
-        self, vault_path: Path, image_path: Path, is_saving_images: bool = False
-    ) -> None:
+    def __init__(self, vault_path: Path, image_path: Path, is_saving_images: bool = False) -> None:
         self.vault_path = vault_path
         self.image_path = image_path
         self.is_saving_images = is_saving_images
@@ -41,17 +37,13 @@ class ObsidianDocument(MarkdownWriter):
     def format_document(self, remarkable_document: Document) -> str:
         obsidian_document_content = ""
         for chapter_highlights in remarkable_document:
-            obsidian_document_content += self._add_header_2(
-                str(chapter_highlights.chapter)
-            )
+            obsidian_document_content += self._add_header_2(str(chapter_highlights.chapter))
             for page_highlights in chapter_highlights:
                 if self.is_saving_images:
                     obsidian_document_content += self._add_image(
                         remarkable_document.name, page_highlights.page_number
                     )
-                obsidian_document_content += self._add_page_quotes(
-                    page_highlights.highlights
-                )
+                obsidian_document_content += self._add_page_quotes(page_highlights.highlights)
         return obsidian_document_content
 
     def _add_header_1(self, text: str) -> str:

@@ -72,12 +72,9 @@ def create_chapter_highlights(
 ) -> list[ChapterHighlights]:
     pages_per_chapter: Dict[str, list[PageHighlights]] = {}
     for page in pages_highlights:
-        pages_per_chapter[page.chapter] = pages_per_chapter.get(page.chapter, []) + [
-            page
-        ]
+        pages_per_chapter[page.chapter] = pages_per_chapter.get(page.chapter, []) + [page]
     highlights_per_chapter = [
-        ChapterHighlights(chapter, pages)
-        for chapter, pages in pages_per_chapter.items()
+        ChapterHighlights(chapter, pages) for chapter, pages in pages_per_chapter.items()
     ]
     return highlights_per_chapter
 

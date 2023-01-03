@@ -3,6 +3,7 @@ from pathlib import Path
 
 import streamlit as st
 
+from highlights_extractor.constants import DATA_FOLDER
 from highlights_extractor.models import (
     Document,
     DocumentContent,
@@ -15,13 +16,10 @@ from highlights_extractor.models import (
 from highlights_extractor.process_documents import PDFExtractor, get_page_number
 from highlights_extractor.repository.file_reader import LocalFileReader
 from highlights_extractor.repository.knowledge_manager_writer import ObsidianDocument
-from remarks_extractor.config.constants import DATA_FOLDER
 
 local_fs = LocalFileReader()
 metadata_files = local_fs.read_all_metadata_files(["visibleName"])
-documents_metadata = [
-    DocumentMetadata(metadata_file) for metadata_file in metadata_files
-]
+documents_metadata = [DocumentMetadata(metadata_file) for metadata_file in metadata_files]
 with st.sidebar:
     document_metadata = st.selectbox("document", list(documents_metadata), index=28)
     destination_path = Path(

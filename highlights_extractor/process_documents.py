@@ -53,18 +53,15 @@ class PDFExtractor:
         table_of_content_items = self._get_raw_table_of_contents()
         table_of_contents = self._get_table_of_contents_df(table_of_content_items)
 
-        only_chapters_before_current_page_df = (
-            self._get_only_chapters_before_current_page(page_number, table_of_contents)
+        only_chapters_before_current_page_df = self._get_only_chapters_before_current_page(
+            page_number, table_of_contents
         )
         if only_chapters_before_current_page_df.empty:
             raise DocumentNotProcessableError(
-                f"Could not find chapter title for page: {page_number} in"
-                f" {self.document_name}"
+                f"Could not find chapter title for page: {page_number} in {self.document_name}"
             )
-        chapter_corresponding_to_the_current_page = (
-            self._get_most_closest_chapter_before_page(
-                only_chapters_before_current_page_df
-            )
+        chapter_corresponding_to_the_current_page = self._get_most_closest_chapter_before_page(
+            only_chapters_before_current_page_df
         )
         chapter_title = chapter_corresponding_to_the_current_page["title"]
         if isinstance(chapter_title, str):
@@ -74,13 +71,9 @@ class PDFExtractor:
     def _get_most_closest_chapter_before_page(
         self, only_chapters_before_current_page_df: pd.DataFrame
     ) -> pd.DataFrame:
-        chapter_corresponding_to_the_current_page = (
-            only_chapters_before_current_page_df.iloc[
-                only_chapters_before_current_page_df[
-                    "difference_between_page_and_chapters"
-                ].argmax()
-            ]
-        )
+        chapter_corresponding_to_the_current_page = only_chapters_before_current_page_df.iloc[
+            only_chapters_before_current_page_df["difference_between_page_and_chapters"].argmax()
+        ]
         return chapter_corresponding_to_the_current_page
 
     def _get_only_chapters_before_current_page(
@@ -109,9 +102,7 @@ class PDFExtractor:
     def _get_table_of_contents_df(
         raw_table_of_content: List[TableOfContentItem],
     ) -> pd.DataFrame:
-        table_of_contents = pd.DataFrame(
-            raw_table_of_content, columns=["level", "title", "page"]
-        )
+        table_of_contents = pd.DataFrame(raw_table_of_content, columns=["level", "title", "page"])
         table_of_contents["title"] = table_of_contents["title"].apply(
             clean_table_content_item_text
         )

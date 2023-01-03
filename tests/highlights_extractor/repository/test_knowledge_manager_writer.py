@@ -14,8 +14,7 @@ def my_obsidian_extractor() -> ObsidianDocument:
 
 def test_add_metadata(my_obsidian_extractor: ObsidianDocument) -> None:
     assert (
-        my_obsidian_extractor._add_metadata("DATE")
-        == "\n> Timestamp: DATE\n> Status:\n> Tags:\n"
+        my_obsidian_extractor._add_metadata("DATE") == "\n> Timestamp: DATE\n> Status:\n> Tags:\n"
     )
 
 
@@ -33,9 +32,7 @@ def test_add_header_3(my_obsidian_extractor: ObsidianDocument) -> None:
 
 def test_add_page_quotes(my_obsidian_extractor: ObsidianDocument) -> None:
     quote_admonition = "\n```ad-quote\nline1\nline2\n```\n"
-    assert (
-        my_obsidian_extractor._add_page_quotes(["line1", "line2"]) == quote_admonition
-    )
+    assert my_obsidian_extractor._add_page_quotes(["line1", "line2"]) == quote_admonition
 
 
 def test_format_document(

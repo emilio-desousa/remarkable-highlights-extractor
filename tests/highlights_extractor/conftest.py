@@ -77,7 +77,5 @@ def remarkable_document_with_2_page_highlights(
         ],
         document_id="doc_1",
     )
-    document_metadata = DocumentMetadata(
-        RawFile(Path("doc_id.metadata"), {"visibleName": "doc"})
-    )
+    document_metadata = DocumentMetadata(RawFile(Path("doc_id.metadata"), {"visibleName": "doc"}))
     return Document(document_highlights, document_metadata)
