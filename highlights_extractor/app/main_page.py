@@ -9,6 +9,8 @@ from highlights_extractor.models import (
     DocumentHighlights,
     DocumentMetadata,
     PageHighlights,
+    create_chapter_highlights,
+    sort_page_highlights,
 )
 from highlights_extractor.process_documents import PDFReader, get_page_number
 from highlights_extractor.repository.file_reader import LocalFileReader
@@ -54,18 +56,23 @@ if document_metadata:
         page_highlights = PageHighlights(
             highlight_file,
             page_number,
-            image,
             chapter=pdf_reader.get_chapter_title(page_number),
+            image=image,
         )
         all_highlights.append(page_highlights)
+
+    all_highlights = sort_page_highlights(all_highlights)
+    highlights_per_chapter = create_chapter_highlights(all_highlights)
     doc_highlights = DocumentHighlights(
-        all_highlights, document_id=document_metadata.document_id
+        highlights_per_chapter, document_id=document_metadata.document_id
     )
-    for page_highlights in doc_highlights.page_highlights_sorted:
-        st.header(page_highlights.chapter)
-        if page_highlights.image:
-            st.image(page_highlights.image)
-        st.write(page_highlights.highlights)
+    for chapter_highlights in doc_highlights.chapters_highlights:
+        st.header(chapter_highlights.chapter)
+        for page in chapter_highlights.page_highlights:
+            if page.image:
+                st.image(page.image, width=200)
+            for highlight in page.highlights:
+                st.caption(highlight)
 
     final_document = Document(doc_highlights, document_metadata)
     obsidian_extractor = ObsidianDocument(

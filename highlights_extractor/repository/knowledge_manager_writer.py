@@ -40,20 +40,18 @@ class ObsidianDocument(MarkdownWriter):
 
     def format_document(self, remarkable_document: Document) -> str:
         obsidian_document_content = ""
-        document_highlights = (
-            remarkable_document.document_highlights.page_highlights_sorted
-        )
-        for page_highlights in document_highlights:
-            if self.is_saving_images:
-                obsidian_document_content += self._add_image(
-                    remarkable_document.name, page_highlights.page_number
+        for chapter_highlights in remarkable_document:
+            obsidian_document_content += self._add_header_2(
+                str(chapter_highlights.chapter)
+            )
+            for page_highlights in chapter_highlights:
+                if self.is_saving_images:
+                    obsidian_document_content += self._add_image(
+                        remarkable_document.name, page_highlights.page_number
+                    )
+                obsidian_document_content += self._add_page_quotes(
+                    page_highlights.highlights
                 )
-            obsidian_document_content += self._add_header_3(
-                str(page_highlights.page_number)
-            )
-            obsidian_document_content += self._add_page_quotes(
-                page_highlights.highlights
-            )
         return obsidian_document_content
 
     def _add_header_1(self, text: str) -> str:
@@ -85,17 +83,18 @@ class ObsidianDocument(MarkdownWriter):
 
     def extract_document(self, remarkable_document: Document) -> None:
         formatted_document = self.format_document(remarkable_document)
-        self.export(remarkable_document.name, formatted_document)
+        self._export(remarkable_document.name, formatted_document)
         if self.is_saving_images:
-            self.save_pages_images(remarkable_document)
+            self._save_pages_images(remarkable_document)
 
-    def save_pages_images(self, remarkable_document: Document) -> None:
-        for page in remarkable_document.highlights:
-            if page.image:
-                page.image.save(
-                    self.image_path
-                    / f"{remarkable_document.name}_{page.page_number}.jpeg"
-                )
+    def _save_pages_images(self, remarkable_document: Document) -> None:
+        for chapter_highlights in remarkable_document:
+            for page_highlights in chapter_highlights:
+                if page_highlights.image:
+                    page_highlights.image.save(
+                        self.image_path
+                        / f"{remarkable_document.name}_{page_highlights.page_number}.jpeg"
+                    )
 
-    def export(self, document_name: str, content: str) -> None:
+    def _export(self, document_name: str, content: str) -> None:
         self.write_file(self.vault_path / document_name, content)

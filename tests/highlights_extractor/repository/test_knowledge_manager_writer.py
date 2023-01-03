@@ -20,19 +20,19 @@ def test_add_metadata(my_obsidian_extractor: ObsidianDocument) -> None:
 
 
 def test_add_header_1(my_obsidian_extractor: ObsidianDocument) -> None:
-    assert my_obsidian_extractor._add_header_1("H1") == "\n# H1"
+    assert my_obsidian_extractor._add_header_1("H1") == "\n# H1\n"
 
 
 def test_add_header_2(my_obsidian_extractor: ObsidianDocument) -> None:
-    assert my_obsidian_extractor._add_header_2("H2") == "\n## H2"
+    assert my_obsidian_extractor._add_header_2("H2") == "\n## H2\n"
 
 
 def test_add_header_3(my_obsidian_extractor: ObsidianDocument) -> None:
-    assert my_obsidian_extractor._add_header_3("H3") == "\n### H3"
+    assert my_obsidian_extractor._add_header_3("H3") == "\n### H3\n"
 
 
 def test_add_page_quotes(my_obsidian_extractor: ObsidianDocument) -> None:
-    quote_admonition = "\n```ad-quote\nline1\nline2\n```"
+    quote_admonition = "\n```ad-quote\nline1\nline2\n```\n"
     assert (
         my_obsidian_extractor._add_page_quotes(["line1", "line2"]) == quote_admonition
     )
@@ -43,8 +43,10 @@ def test_format_document(
     remarkable_document_with_2_page_highlights: Document,
 ) -> None:
     expected_formatted_document = (
-        "\n### 1\n```ad-quote\npage_1_highlight_1\npage_1_highlight_2\n```"
-        "\n### 2\n```ad-quote\npage_2_highlight_1\npage_2_highlight_2\n```"
+        "\n## chapter_1\n```ad-quote\npage_1_highlight_1\npage_1_highlight_2\n```\n"
+        "```ad-quote\npage_2_highlight_1\npage_2_highlight_2\n```"
+        "\n## chapter_2\n```ad-quote\npage_3_highlight_1\npage_3_highlight_2\n```\n"
+        "```ad-quote\npage_4_highlight_1\npage_4_highlight_2\n```"
     )
 
     actual_document_formatted_content = my_obsidian_extractor.format_document(

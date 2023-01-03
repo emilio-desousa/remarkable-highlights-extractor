@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Dict, Iterator, Optional
 
 from PIL import Image
 
@@ -43,8 +43,8 @@ class Highlights:
 class PageHighlights:
     raw_file: RawHighlightFile
     page_number: int
+    chapter: str = ""
     image: Optional[Image.Image] = None
-    chapter: Optional[str] = None
 
     def __post_init__(self) -> None:
         self.page_id = self.raw_file.page_id
@@ -55,6 +55,33 @@ class PageHighlights:
         return str(self.highlights)
 
 
+@dataclass
+class ChapterHighlights:
+    chapter: str
+    page_highlights: list[PageHighlights]
+
+    def __repr__(self) -> str:
+        return str(self.page_highlights)
+
+    def __iter__(self) -> Iterator[PageHighlights]:
+        return iter(self.page_highlights)
+
+
+def create_chapter_highlights(
+    pages_highlights: list[PageHighlights],
+) -> list[ChapterHighlights]:
+    pages_per_chapter: Dict[str, list[PageHighlights]] = {}
+    for page in pages_highlights:
+        pages_per_chapter[page.chapter] = pages_per_chapter.get(page.chapter, []) + [
+            page
+        ]
+    highlights_per_chapter = [
+        ChapterHighlights(chapter, pages)
+        for chapter, pages in pages_per_chapter.items()
+    ]
+    return highlights_per_chapter
+
+
 def sort_page_highlights(
     page_highlights: list[PageHighlights],
 ) -> list[PageHighlights]:
@@ -63,15 +90,14 @@ def sort_page_highlights(
 
 @dataclass
 class DocumentHighlights:
-    page_highlights: list[PageHighlights]
+    chapters_highlights: list[ChapterHighlights]
     document_id: str
 
-    def __post_init__(self) -> None:
-        self.page_highlights_sorted = sort_page_highlights(self.page_highlights)
-        del self.page_highlights
-
     def __repr__(self) -> str:
-        return str(self.page_highlights)
+        return str(self.chapters_highlights)
+
+    def __iter__(self) -> Iterator[ChapterHighlights]:
+        return iter(self.chapters_highlights)
 
 
 @dataclass
@@ -83,4 +109,7 @@ class Document:
         self,
     ) -> None:
         self.name = self.document_metadata.document_name
-        self.highlights = self.document_highlights.page_highlights_sorted
+        self.highlights = self.document_highlights.chapters_highlights
+
+    def __iter__(self) -> Iterator[ChapterHighlights]:
+        return iter(self.highlights)
