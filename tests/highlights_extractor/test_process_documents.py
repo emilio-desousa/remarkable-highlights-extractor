@@ -5,16 +5,16 @@ from pandas.testing import assert_frame_equal
 
 from highlights_extractor.config.exceptions import DocumentNotProcessableError
 from highlights_extractor.process_documents import (
-    PDFReader,
+    PDFExtractor,
     TableOfContentItem,
-    extract_table_content_item_text,
+    clean_table_content_item_text,
 )
 from tests.constants import DATA_FOLDER
 
 
 @pytest.fixture(name="pdf_reader")
-def get_pdf_reader() -> PDFReader:
-    reader = PDFReader(DATA_FOLDER / "software-craft.pdf", "software-craft")
+def get_pdf_reader() -> PDFExtractor:
+    reader = PDFExtractor(DATA_FOLDER / "software-craft.pdf", "software-craft")
     return reader
 
 
@@ -35,7 +35,7 @@ def get_pdf_reader() -> PDFReader:
 def test_get_page_text(
     table_of_contents: list[TableOfContentItem],
     expected_table_of_contents: pd.DataFrame,
-    pdf_reader: PDFReader,
+    pdf_reader: PDFExtractor,
 ) -> None:
     table_of_contents_df = pdf_reader._get_table_of_contents_df(table_of_contents)
 
@@ -61,7 +61,7 @@ def test_get_page_text(
 def test_extract_table_content_item_text(
     table_content_item_text: str, expected_text_without_unicode_and_chapter_number: str
 ) -> None:
-    actual_text = extract_table_content_item_text(table_content_item_text)
+    actual_text = clean_table_content_item_text(table_content_item_text)
     assert expected_text_without_unicode_and_chapter_number == actual_text
 
 
@@ -94,7 +94,7 @@ def test_get_chapter_title(
     table_of_content: list[TableOfContentItem],
     page_number: int,
     expected_chapter_title: str,
-    pdf_reader: PDFReader,
+    pdf_reader: PDFExtractor,
 ) -> None:
     pdf_reader._get_raw_table_of_contents = lambda: table_of_content
     chapter_title = pdf_reader.get_chapter_title(page_number)
@@ -102,14 +102,14 @@ def test_get_chapter_title(
 
 
 def test_get_chapter_title_from_a_invalid_pdf() -> None:
-    pdf_reader = PDFReader(DATA_FOLDER / "not_a_book.pdf", "not_a_book")
+    pdf_reader = PDFExtractor(DATA_FOLDER / "not_a_book.pdf", "not_a_book")
     dummy_page_number = 0
     with pytest.raises(DocumentNotProcessableError):
         pdf_reader.get_chapter_title(dummy_page_number)
 
 
 def test_get_chapter_title_from_a_page_not_in_the_table_of_content(
-    pdf_reader: PDFReader,
+    pdf_reader: PDFExtractor,
 ) -> None:
     pdf_reader._get_raw_table_of_contents = lambda: [TableOfContentItem(0, "toc_1", 0)]
     page_number_not_in_the_table_of_content = -1

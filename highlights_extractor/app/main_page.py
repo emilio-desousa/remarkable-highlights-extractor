@@ -12,7 +12,7 @@ from highlights_extractor.models import (
     create_chapter_highlights,
     sort_page_highlights,
 )
-from highlights_extractor.process_documents import PDFReader, get_page_number
+from highlights_extractor.process_documents import PDFExtractor, get_page_number
 from highlights_extractor.repository.file_reader import LocalFileReader
 from highlights_extractor.repository.knowledge_manager_writer import ObsidianDocument
 from remarks_extractor.config.constants import DATA_FOLDER
@@ -46,7 +46,7 @@ if document_metadata:
     document_content = DocumentContent(
         local_fs.read_document_content(document_id=document_metadata.document_id)
     )
-    pdf_reader = PDFReader(
+    pdf_reader = PDFExtractor(
         DATA_FOLDER / f"{document_metadata.document_id}.pdf",
         document_name=document_metadata.document_name,
     )
