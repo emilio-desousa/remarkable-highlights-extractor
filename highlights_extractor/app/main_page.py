@@ -10,12 +10,11 @@ from highlights_extractor.models import (
     DocumentHighlights,
     DocumentMetadata,
     PageHighlights,
-    create_chapter_highlights,
-    sort_page_highlights,
 )
 from highlights_extractor.process_documents import PDFExtractor, get_page_number
 from highlights_extractor.repository.file_reader import LocalFileReader
 from highlights_extractor.repository.knowledge_manager_writer import ObsidianDocument
+from highlights_extractor.utils import create_chapter_highlights, sort_page_highlights
 
 local_fs = LocalFileReader()
 metadata_files = local_fs.read_all_metadata_files(["visibleName"])

@@ -10,6 +10,7 @@ from highlights_extractor.constants import DATA_FOLDER
 from highlights_extractor.utils import (
     extract_document_id_from_path,
     extract_page_id_from_path,
+    recursive_function_to_get_all_dicts,
 )
 
 
@@ -105,14 +106,3 @@ class LocalFileReader(FileReader):
     def read_json(self, path: Path) -> dict:
         with open(str(path), "rb") as json_file:
             return json.load(json_file)
-
-
-def recursive_function_to_get_all_dicts(highlights: list) -> list:
-    list_of_dict = []
-    for dict_or_list in highlights:
-        if isinstance(dict_or_list, dict):
-            list_of_dict.append(dict_or_list)
-        else:
-            list_of_dict = list_of_dict + recursive_function_to_get_all_dicts(dict_or_list)
-
-    return list_of_dict
