@@ -1,6 +1,7 @@
 from typing import Callable
 
-from highlights_extractor.models import PageHighlights, sort_page_highlights
+from highlights_extractor.model_utils import sort_page_highlights
+from highlights_extractor.models import PageHighlights
 
 
 def test_sorting_page_highlights_without_already_sorted_list(

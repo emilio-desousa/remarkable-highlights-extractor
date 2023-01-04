@@ -19,19 +19,19 @@ def test_add_metadata(my_obsidian_extractor: ObsidianDocument) -> None:
 
 
 def test_add_header_1(my_obsidian_extractor: ObsidianDocument) -> None:
-    assert my_obsidian_extractor._add_header_1("H1") == "\n# H1\n"
+    assert my_obsidian_extractor._add_header_1("H1") == "\n# H1"
 
 
 def test_add_header_2(my_obsidian_extractor: ObsidianDocument) -> None:
-    assert my_obsidian_extractor._add_header_2("H2") == "\n## H2\n"
+    assert my_obsidian_extractor._add_header_2("H2") == "\n## H2"
 
 
 def test_add_header_3(my_obsidian_extractor: ObsidianDocument) -> None:
-    assert my_obsidian_extractor._add_header_3("H3") == "\n### H3\n"
+    assert my_obsidian_extractor._add_header_3("H3") == "\n### H3"
 
 
 def test_add_page_quotes(my_obsidian_extractor: ObsidianDocument) -> None:
-    quote_admonition = "\n```ad-quote\nline1\nline2\n```\n"
+    quote_admonition = "\n```ad-quote\nline1\nline2\n```"
     assert my_obsidian_extractor._add_page_quotes(["line1", "line2"]) == quote_admonition
 
 

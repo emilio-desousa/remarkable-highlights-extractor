@@ -8,8 +8,10 @@ import pandas as pd
 from PIL import Image
 
 from highlights_extractor.config.exceptions import DocumentNotProcessableError
-from highlights_extractor.models import DocumentContent
 from highlights_extractor.repository.file_reader import RawHighlightFile
+
+REMARKABLE_HEIGHT = 1872
+REMARKABLE_WIDTH = 1300
 
 
 @dataclass
@@ -27,6 +29,9 @@ class PDFExtractor:
     def __init__(self, document_path: Path, document_name: str) -> None:
         self.reader = self._get_fitz_reader(document_path)
         self.document_name = document_name
+
+    def _get_fitz_reader(self, document_path: Path) -> fitz.Document:
+        return fitz.Document(document_path)
 
     def get_chapter_title(self, page_number: int) -> str:
         """Get the chapter title for a given page number.
@@ -66,49 +71,6 @@ class PDFExtractor:
             return chapter_title
         return list(chapter_title)[0]
 
-    def get_page_image(self, page_number: int) -> Image.Image:
-        """Get the image of a page in the document.
-        It is a bit hacky so if you have a better way to do it, please let me know by opening
-        an issue on the repo.
-
-        Args:
-            page_number: page number of the highlight
-
-        Returns:
-            image of the page
-        """
-        pdf_page = self.reader.load_page(page_number)
-        zoom = 2
-        mat = fitz.Matrix(zoom, zoom)
-        pix = pdf_page.get_pixmap(matrix=mat)
-        image = Image.open(io.BytesIO(pix.pil_tobytes(format="jpeg")))
-        return image
-
-    def get_page_text(self, page_number: int) -> str:
-        page = self.reader.load_page(page_number).get_text("dict")
-        return page
-
-    def _get_most_closest_chapter_before_page(
-        self, only_chapters_before_current_page_df: pd.DataFrame
-    ) -> pd.DataFrame:
-        chapter_corresponding_to_the_current_page = only_chapters_before_current_page_df.iloc[
-            only_chapters_before_current_page_df["difference_between_page_and_chapters"].argmax()
-        ]
-        return chapter_corresponding_to_the_current_page
-
-    def _get_only_chapters_before_current_page(
-        self, page_number: int, table_of_contents: pd.DataFrame
-    ) -> pd.DataFrame:
-        tmp_column = "difference_between_page_and_chapters"
-        table_of_contents = table_of_contents.assign(
-            **{tmp_column: lambda df: df["page"] - page_number}
-        )
-        only_chapters_with_page_number_less_than_current_page_df = table_of_contents[
-            table_of_contents[tmp_column] <= 0
-        ]
-
-        return only_chapters_with_page_number_less_than_current_page_df
-
     def _get_raw_table_of_contents(self) -> List[TableOfContentItem]:
         if table_of_content := self.reader.get_toc():  # type: ignore
             return [TableOfContentItem(*item) for item in table_of_content]
@@ -125,26 +87,89 @@ class PDFExtractor:
         table_of_contents = pd.DataFrame(raw_table_of_content, columns=["level", "title", "page"])
         return table_of_contents
 
-    def _get_fitz_reader(self, document_path: Path) -> fitz.Document:
-        return fitz.Document(document_path)
+    def _get_only_chapters_before_current_page(
+        self, page_number: int, table_of_contents: pd.DataFrame
+    ) -> pd.DataFrame:
+        tmp_column = "difference_between_page_and_chapters"
+        table_of_contents = table_of_contents.assign(
+            **{tmp_column: lambda df: df["page"] - page_number}
+        )
+        only_chapters_with_page_number_less_than_current_page_df = table_of_contents[
+            table_of_contents[tmp_column] <= 0
+        ]
+        return only_chapters_with_page_number_less_than_current_page_df
 
+    def _get_most_closest_chapter_before_page(
+        self, only_chapters_before_current_page_df: pd.DataFrame
+    ) -> pd.DataFrame:
+        chapter_corresponding_to_the_current_page = only_chapters_before_current_page_df.iloc[
+            only_chapters_before_current_page_df["difference_between_page_and_chapters"].argmax()
+        ]
+        return chapter_corresponding_to_the_current_page
 
-def get_page_number(document_content: DocumentContent, page: RawHighlightFile) -> int:
-    """Get the page number of a page in the document.
-    To do so, we need the content file of the document and the page id of the page
-    in the content file, there is two list:
-        - One with the page ids
-        - One with the page numbers
-    We need to find the index of the corresponding page id in the list of page ids
-    to get the corresponding page number.
+    def get_page_image(
+        self, page_number: int, highlight_file: RawHighlightFile, image_zoom: int = 1
+    ) -> Image.Image:
+        """Get the image of a page with the highlights on it. The highlights are
+        extracted from the highlight file.
+        But the scale of the pdf and the highlights are not the same, so we need to
+        scale the highlights to the pdf scale.
 
-    Args:
-        document_content: content document to get the two lists
-        page: page to get the page id
+        Args:
+            page_number: page number of the highlight
+            highlight_file: raw highlight file that contains all the highlights boxes
+            image_zoom: zoom to show and store the image. For example, a zoom of 2 means a better
+                quality of the image but it will be bigger in memory. Defaults to 1.
 
-    Returns:
-        page number of the page
-    """
-    page_remarkable_index = document_content.remarkable_page_ids.index(page.page_id)
-    page_number = document_content.page_numbers[page_remarkable_index]
-    return page_number
+        Returns:
+            image of the page with the highlights on it
+        """
+        pdf_page = self.reader.load_page(page_number)
+        highlights_boxes = self._get_highlights_boxes(highlight_file.content, pdf_page)
+        pdf_page.add_highlight_annot(highlights_boxes, clip=True)
+        image = self._create_image_python_object(image_zoom, pdf_page)
+        return image
+
+    def _get_highlights_boxes(
+        self, highlight_contents: list[dict], pdf_page: fitz.Page
+    ) -> list[fitz.Quad]:
+        pdf_height = pdf_page.rect.height
+        pdf_width = pdf_page.rect.width
+        scale_width = pdf_width / REMARKABLE_WIDTH
+        scale_height = pdf_height / REMARKABLE_HEIGHT
+        highlights_boxes = []
+
+        for content in highlight_contents:
+            for rect in content["rects"]:
+                x1_highlight_in_pdf = rect["x"] * scale_width
+                x2_highlight_in_pdf = x1_highlight_in_pdf + (rect["width"] * scale_width)
+                y1_highlight_in_pdf = rect["y"] * scale_height
+                y2_highlight_in_pdf = y1_highlight_in_pdf + (rect["height"] * scale_height)
+                quad = self._create_quad(
+                    x1_highlight_in_pdf,
+                    x2_highlight_in_pdf,
+                    y1_highlight_in_pdf,
+                    y2_highlight_in_pdf,
+                )
+                highlights_boxes.append(quad)
+        return highlights_boxes
+
+    def _create_quad(
+        self,
+        x1_highlight_in_pdf: float,
+        x2_highlight_in_pdf: float,
+        y1_highlight_in_pdf: float,
+        y2_highlight_in_pdf: float,
+    ) -> fitz.Quad:
+        point_1_top_left = fitz.Point(x1_highlight_in_pdf, y1_highlight_in_pdf)
+        point_2_top_right = fitz.Point(x2_highlight_in_pdf, y1_highlight_in_pdf)
+        point_3_bottom_left = fitz.Point(x1_highlight_in_pdf, y2_highlight_in_pdf)
+        point_4_bottom_right = fitz.Point(x2_highlight_in_pdf, y2_highlight_in_pdf)
+        return fitz.Quad(
+            point_1_top_left, point_2_top_right, point_3_bottom_left, point_4_bottom_right
+        )
+
+    def _create_image_python_object(self, image_zoom: int, pdf_page: fitz.Page) -> Image.Image:
+        pix = pdf_page.get_pixmap(matrix=fitz.Matrix(image_zoom, image_zoom))  # type: ignore
+        image = Image.open(io.BytesIO(pix.pil_tobytes(format="jpeg")))
+        return image

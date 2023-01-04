@@ -8,7 +8,7 @@ from highlights_extractor.models import (
     DocumentMetadata,
     PageHighlights,
 )
-from highlights_extractor.process_documents import PDFExtractor, get_page_number
+from highlights_extractor.process_documents import PDFExtractor
 from highlights_extractor.repository.file_reader import FileReader, RawHighlightFile
 
 
@@ -51,7 +51,9 @@ def create_highlights(
 ) -> Generator[PageHighlights, None, None]:
     for highlight_file in raw_highlight_files:
         page_number = get_page_number(document_content, highlight_file)
-        image = pdf_reader.get_page_image(page_number) if is_saving_images else None
+        image = (
+            pdf_reader.get_page_image(page_number, highlight_file) if is_saving_images else None
+        )
         yield PageHighlights(
             raw_file=highlight_file,
             page_number=page_number,
@@ -78,3 +80,24 @@ def get_document_highlights(
         pdf_reader,
     )
     return DocumentHighlights(chapter_highlights, document_metadata.document_id)
+
+
+def get_page_number(document_content: DocumentContent, page: RawHighlightFile) -> int:
+    """Get the page number of a page in the document.
+    To do so, we need the content file of the document and the page id of the page
+    in the content file, there is two list:
+        - One with the page ids
+        - One with the page numbers
+    We need to find the index of the corresponding page id in the list of page ids
+    to get the corresponding page number.
+
+    Args:
+        document_content: content document to get the two lists
+        page: page to get the page id
+
+    Returns:
+        page number of the page
+    """
+    page_remarkable_index = document_content.remarkable_page_ids.index(page.page_id)
+    page_number = document_content.page_numbers[page_remarkable_index]
+    return page_number

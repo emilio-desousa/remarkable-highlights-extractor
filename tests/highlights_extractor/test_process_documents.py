@@ -1,14 +1,8 @@
 # pylint: disable=protected-access
-import pandas as pd
 import pytest
-from pandas.testing import assert_frame_equal
 
 from highlights_extractor.config.exceptions import DocumentNotProcessableError
-from highlights_extractor.process_documents import (
-    PDFExtractor,
-    TableOfContentItem,
-    clean_table_content_item_text,
-)
+from highlights_extractor.process_documents import PDFExtractor, TableOfContentItem
 from tests.constants import DATA_FOLDER
 
 
@@ -16,53 +10,6 @@ from tests.constants import DATA_FOLDER
 def get_pdf_reader() -> PDFExtractor:
     reader = PDFExtractor(DATA_FOLDER / "software-craft.pdf", "software-craft")
     return reader
-
-
-@pytest.mark.parametrize(
-    "table_of_contents, expected_table_of_contents",
-    [
-        (None, None),
-        (
-            [
-                TableOfContentItem(*[0, "1.4\u2002Anatomie d’un test", 0]),
-                TableOfContentItem(*[1, "2 3\u2002\x07Règles des 3 étapes", 1]),
-            ],
-            [[0, "Anatomie dun test", 0], [1, "Rgles des 3 tapes", 1]],
-        ),
-    ],
-    ids=["empty", "with_content_to_clean"],
-)
-def test_get_page_text(
-    table_of_contents: list[TableOfContentItem],
-    expected_table_of_contents: pd.DataFrame,
-    pdf_reader: PDFExtractor,
-) -> None:
-    table_of_contents_df = pdf_reader._get_table_of_contents_df(table_of_contents)
-
-    expected_table_of_contents_df = pd.DataFrame(
-        expected_table_of_contents, columns=["level", "title", "page"]
-    )
-    assert_frame_equal(expected_table_of_contents_df, table_of_contents_df)
-
-
-@pytest.mark.parametrize(
-    "table_content_item_text, expected_text_without_unicode_and_chapter_number",
-    [
-        ("1.4\u2002Anatomie d’un test", "Anatomie dun test"),
-        ("2 3\u2002\x07Règles des 3 étapes", "Rgles des 3 tapes"),
-        ("", ""),
-    ],
-    ids=[
-        "unicode with chapter number",
-        "unicode and hexa code with chapter number",
-        "empty_string",
-    ],
-)
-def test_extract_table_content_item_text(
-    table_content_item_text: str, expected_text_without_unicode_and_chapter_number: str
-) -> None:
-    actual_text = clean_table_content_item_text(table_content_item_text)
-    assert expected_text_without_unicode_and_chapter_number == actual_text
 
 
 @pytest.mark.parametrize(

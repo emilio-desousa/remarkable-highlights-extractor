@@ -11,6 +11,7 @@ from highlights_extractor.repository.knowledge_manager_writer import ObsidianDoc
 local_fs = LocalFileReader()
 metadata_files = local_fs.read_all_metadata_files(["visibleName"])
 documents_metadata = [DocumentMetadata(metadata_file) for metadata_file in metadata_files]
+
 with st.sidebar:
     document_metadata = st.selectbox("document", list(documents_metadata), index=28)
     destination_path = Path(
