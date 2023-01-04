@@ -3,18 +3,10 @@ from pathlib import Path
 
 import streamlit as st
 
-from highlights_extractor.constants import DATA_FOLDER
-from highlights_extractor.models import (
-    Document,
-    DocumentContent,
-    DocumentHighlights,
-    DocumentMetadata,
-    PageHighlights,
-)
-from highlights_extractor.process_documents import PDFExtractor, get_page_number
+from highlights_extractor.model_utils import get_document_highlights
+from highlights_extractor.models import Document, DocumentMetadata
 from highlights_extractor.repository.file_reader import LocalFileReader
 from highlights_extractor.repository.knowledge_manager_writer import ObsidianDocument
-from highlights_extractor.utils import create_chapter_highlights, sort_page_highlights
 
 local_fs = LocalFileReader()
 metadata_files = local_fs.read_all_metadata_files(["visibleName"])
@@ -35,43 +27,22 @@ with st.sidebar:
     )
     is_saving_images = st.checkbox("Load and export page images?")
 
+
 if document_metadata:
     st.header(document_metadata.document_name)
     extracting_document = st.button("Extract Document")
-    highlights_files = local_fs.read_document_highlights(document_metadata.document_id)
-    all_highlights = []
-    document_content = DocumentContent(
-        local_fs.read_document_content(document_id=document_metadata.document_id)
-    )
-    pdf_reader = PDFExtractor(
-        DATA_FOLDER / f"{document_metadata.document_id}.pdf",
-        document_name=document_metadata.document_name,
-    )
-    for highlight_file in highlights_files:
-        page_number = get_page_number(document_content, highlight_file)
-        image = pdf_reader.get_page_image(page_number) if is_saving_images else None
-        page_highlights = PageHighlights(
-            highlight_file,
-            page_number,
-            chapter=pdf_reader.get_chapter_title(page_number),
-            image=image,
-        )
-        all_highlights.append(page_highlights)
 
-    all_highlights = sort_page_highlights(all_highlights)
-    highlights_per_chapter = create_chapter_highlights(all_highlights)
-    doc_highlights = DocumentHighlights(
-        highlights_per_chapter, document_id=document_metadata.document_id
-    )
-    for chapter_highlights in doc_highlights.chapters_highlights:
+    document_highlights = get_document_highlights(local_fs, document_metadata, is_saving_images)
+
+    for chapter_highlights in document_highlights:
         st.header(chapter_highlights.chapter)
-        for page in chapter_highlights.page_highlights:
+        for page in chapter_highlights:
             if page.image:
-                st.image(page.image, width=200)
+                st.image(page.image)
             for highlight in page.highlights:
                 st.caption(highlight)
 
-    final_document = Document(doc_highlights, document_metadata)
+    final_document = Document(document_highlights, document_metadata)
     obsidian_extractor = ObsidianDocument(
         vault_path=destination_path,
         image_path=images_destination_path,

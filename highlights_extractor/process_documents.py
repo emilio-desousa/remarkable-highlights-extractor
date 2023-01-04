@@ -1,6 +1,4 @@
 import io
-import re
-import string
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List
@@ -68,6 +66,28 @@ class PDFExtractor:
             return chapter_title
         return list(chapter_title)[0]
 
+    def get_page_image(self, page_number: int) -> Image.Image:
+        """Get the image of a page in the document.
+        It is a bit hacky so if you have a better way to do it, please let me know by opening
+        an issue on the repo.
+
+        Args:
+            page_number: page number of the highlight
+
+        Returns:
+            image of the page
+        """
+        pdf_page = self.reader.load_page(page_number)
+        zoom = 2
+        mat = fitz.Matrix(zoom, zoom)
+        pix = pdf_page.get_pixmap(matrix=mat)
+        image = Image.open(io.BytesIO(pix.pil_tobytes(format="jpeg")))
+        return image
+
+    def get_page_text(self, page_number: int) -> str:
+        page = self.reader.load_page(page_number).get_text("dict")
+        return page
+
     def _get_most_closest_chapter_before_page(
         self, only_chapters_before_current_page_df: pd.DataFrame
     ) -> pd.DataFrame:
@@ -103,60 +123,10 @@ class PDFExtractor:
         raw_table_of_content: List[TableOfContentItem],
     ) -> pd.DataFrame:
         table_of_contents = pd.DataFrame(raw_table_of_content, columns=["level", "title", "page"])
-        table_of_contents["title"] = table_of_contents["title"].apply(
-            clean_table_content_item_text
-        )
         return table_of_contents
 
     def _get_fitz_reader(self, document_path: Path) -> fitz.Document:
         return fitz.Document(document_path)
-
-    def get_page_image(self, page_number: int) -> Image.Image:
-        """Get the image of a page in the document.
-        It is a bit hacky so if you have a better way to do it, please let me know by opening
-        an issue on the repo.
-
-        Args:
-            page_number: page number of the highlight
-
-        Returns:
-            image of the page
-        """
-        pdf_page = self.reader.load_page(page_number)
-        zoom = (2, 2)
-        mat = fitz.Matrix(zoom)
-        pix = pdf_page.get_pixmap(matrix=mat)
-        image = Image.open(io.BytesIO(pix.pil_tobytes(format="jpeg")))
-        return image
-
-    def get_page_text(self, page_number: int) -> str:
-        page = self.reader.load_page(page_number).get_text("dict")
-        return page
-
-
-def clean_table_content_item_text(text: str) -> str:
-    """Clean the text from the table of contents item.
-    The table of contents item is a tuple of 3 elements, the first one is the level of the
-    chapter, the second one is the title of the chapter and the third one is the page number
-    of the chapter.
-    But the text has some special characters that we don't want to keep, so we remove them.
-    Like: /u0000 or /x07
-    TODO: find a better way to do this -> we delete all non ascii characters so it delete
-    all the accents and stuff like that.
-
-    Args:
-        text: text of the table of contents item
-
-    Returns:
-        text with only ASCII characters
-    """
-    valid_characters = string.printable
-
-    text_without_special_chars = "".join(i for i in text if i in valid_characters)
-    text_without_special_chars_and_chapter_number = re.sub(
-        r"^[0-9. ]*", "", text_without_special_chars
-    )
-    return text_without_special_chars_and_chapter_number
 
 
 def get_page_number(document_content: DocumentContent, page: RawHighlightFile) -> int:

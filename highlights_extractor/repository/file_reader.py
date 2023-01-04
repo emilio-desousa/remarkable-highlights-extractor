@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Generator, Optional, Tuple
 
 from highlights_extractor.constants import DATA_FOLDER
-from highlights_extractor.utils import (
+from highlights_extractor.path_utils import (
     extract_document_id_from_path,
     extract_page_id_from_path,
     recursive_function_to_get_all_dicts,

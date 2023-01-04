@@ -3,8 +3,8 @@ from typing import Iterator, Optional
 
 from PIL import Image
 
+from highlights_extractor.path_utils import extract_document_id_from_path
 from highlights_extractor.repository.file_reader import RawFile, RawHighlightFile
-from highlights_extractor.utils import extract_document_id_from_path
 
 
 @dataclass

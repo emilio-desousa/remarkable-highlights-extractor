@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from highlights_extractor.utils import (
+from highlights_extractor.path_utils import (
     extract_document_id_from_path,
     extract_page_id_from_path,
 )
