@@ -13,7 +13,22 @@ metadata_files = local_fs.read_all_metadata_files(["visibleName"])
 documents_metadata = [DocumentMetadata(metadata_file) for metadata_file in metadata_files]
 
 with st.sidebar:
+    st.title("Remarkable Highlights Extractor")
     document_metadata = st.selectbox("document", list(documents_metadata), index=28)
+    output_system = st.selectbox(
+        "output system",
+        ["Obsidian", "Notion (Not Implemented)", "RoamResearch (Not Implemented)"],
+        index=0,
+    )
+    st.markdown("---")
+    if output_system != "Obsidian":
+        raise NotImplementedError(
+            "Oh no! Sorry, only Obsidian is supported for now as output system,"
+            "but if you want to contribute, please open an issue :) "
+        )
+
+    st.header("Obsidian Configuration")
+
     destination_path = Path(
         st.text_input(
             "Obsidian path",
@@ -27,7 +42,11 @@ with st.sidebar:
         )
     )
     is_saving_images = st.checkbox("Load and export page images?")
-
+    extractor = ObsidianDocument(
+        vault_path=destination_path,
+        image_path=images_destination_path,
+        is_saving_images=is_saving_images,
+    )
 
 if document_metadata:
     st.header(document_metadata.document_name)
@@ -44,10 +63,5 @@ if document_metadata:
                 st.caption(highlight)
 
     final_document = Document(document_highlights, document_metadata)
-    obsidian_extractor = ObsidianDocument(
-        vault_path=destination_path,
-        image_path=images_destination_path,
-        is_saving_images=is_saving_images,
-    )
     if extracting_document:
-        obsidian_extractor.extract_document(final_document)
+        extractor.extract_document(final_document)
