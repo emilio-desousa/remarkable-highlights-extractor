@@ -20,11 +20,34 @@ cd remarkable-highlights-extractor
 poetry install
 ```
 
+## Download your remarkable documents
+
+Add it to `data/xochitl` folder with:
+
+- ssh and scp
+- RMPAPI
+- ...
+
 ## Run the streamlit app
 
 ```bash
 poetry run streamlit run highlights_extractor/app/main_page.py
 ```
+
+## Features
+
+### Supported Sources
+
+- [x] Local Files in `data/xochitl` folder
+- [ ] Google Drive
+- [ ] SCP
+- [ ] Remarkable Cloud
+
+### Extractors
+
+- [x] Obsidian
+- [ ] Roam Research
+- [ ] Notion
 
 ## Notes
 
